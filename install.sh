@@ -10,8 +10,7 @@ ln -sfn "$REPO/claude/commands"             ~/.claude/commands
 ln -sfn "$REPO/claude/settings.json"        ~/.claude/settings.json
 ln -sfn "$REPO/claude/statusline-command.sh" ~/.claude/statusline-command.sh
 
-chmod +x "$REPO"/scripts/*.sh
+chmod +x "$REPO"/scripts/*/*.sh
 
 echo "Linked claude/ into ~/.claude."
-echo "Add scripts to PATH:  export PATH=\"$REPO/scripts:\$PATH\""
-echo "For iden-lookup: cp scripts/.iden-auth.example scripts/.iden-auth and fill it in."
+echo "Each script lives in scripts/<name>/ with its own README — see there for setup."
