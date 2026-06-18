@@ -1,0 +1,9 @@
+# Secrets — never commit
+scripts/.iden-auth
+*.auth
+.env
+.env.*
+
+# OS / editor cruft
+.DS_Store
+*.swp

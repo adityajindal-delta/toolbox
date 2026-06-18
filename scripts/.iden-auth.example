@@ -1,0 +1,6 @@
+# Copy to .iden-auth (gitignored) and fill in from a logged-in IdenHQ session.
+# Grab from DevTools → Network → any api.idenhq.com/graphql request → Copy as cURL,
+# then pull these out of the -b/--cookie value.
+IDEN_SESSION=your-sessionid
+IDEN_CSRF=your-csrftoken
+IDEN_AWSALB=your-AWSALB-cookie
