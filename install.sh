@@ -10,6 +10,13 @@ ln -sfn "$REPO/claude/commands"             ~/.claude/commands
 ln -sfn "$REPO/claude/settings.json"        ~/.claude/settings.json
 ln -sfn "$REPO/claude/statusline-command.sh" ~/.claude/statusline-command.sh
 
+# Custom (self-authored) skills are vendored here; link each into ~/.claude/skills
+# individually so third-party skills already installed there are left untouched.
+mkdir -p ~/.claude/skills
+for skill in "$REPO"/claude/skills/*/; do
+  ln -sfn "${skill%/}" ~/.claude/skills/"$(basename "$skill")"
+done
+
 chmod +x "$REPO"/scripts/*/*.sh
 
 echo "Linked claude/ into ~/.claude."

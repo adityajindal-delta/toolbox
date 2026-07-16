@@ -1,9 +1,15 @@
 ---
-description: Efficiently run a Greptile review loop on a PR (greploop, with reliable polling)
-argument-hint: "[PR number]  (defaults to the PR for the current branch)"
+name: grepreview
+description: >
+  Efficiently run a Greptile review loop on a GitHub PR until it scores 5/5 with zero
+  unresolved comments. A more reliable variant of greploop: it polls in discrete/background
+  steps instead of one long-running loop (so the Bash tool never times out mid-poll), treats
+  a fresh review/comment as completion (not only a check-run), and parses the Greptile
+  summary's "Comments Outside Diff" findings that greploop misses. Use when optimizing a
+  GitHub PR against Greptile.
+license: MIT
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*)
 ---
-
 # grepreview
 
 Iteratively improve a GitHub PR with Greptile until it scores 5/5 with zero unresolved
@@ -20,7 +26,7 @@ that command gets killed mid-poll and the loop never completes. Also, Greptile s
 posts its result as a PR **review/comment** with no commit **check-run**, so a loop that only
 waits on check-runs hangs forever.
 
-**Therefore, in this command:**
+**Therefore, in this skill:**
 - **NEVER** use a long-running `while`/`sleep` poll loop inside a single Bash call.
 - Poll in **discrete Bash calls**, one status check per call (each call may `sleep 10` once,
   then exit). YOU drive the loop and re-invoke Bash for the next tick.
@@ -160,9 +166,16 @@ For each finding (inline OR out-of-diff), **work it end-to-end before moving to 
 3. If false-positive / pre-existing / out-of-scope → note the disposition.
 4. **IMMEDIATELY resolve the thread for THIS finding** — do not batch resolutions until the
    end of the iteration or after the commit. The thread should close the moment its fix
-   lands (or its dismissal is recorded). Use the GraphQL `resolveReviewThread` mutation from
-   `~/.claude/skills/greptile/greploop/references/graphql-queries.md` (one thread per call is
-   fine; the batch form is only useful when many are ready at once).
+   lands (or its dismissal is recorded). Reply with the fix commit ref (or the disposition),
+   then resolve — both are self-contained GraphQL mutations (get `$THREAD_ID` from Step 5.5's
+   listing):
+
+   ```bash
+   # reply on the thread (leaves the fix sha / disposition on record)
+   gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{id}}}' -f t="$THREAD_ID" -f b="Fixed in <sha> — <one line>."
+   # resolve it
+   gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{isResolved}}}' -f t="$THREAD_ID"
+   ```
 5. For out-of-diff findings (no thread to resolve), reply on the summary issue comment with
    a one-line disposition so the record is closed before moving on.
 
@@ -187,6 +200,33 @@ Refresh `HEAD_SHA` and go back to **Step 2**. **Max 5 iterations.**
 Sanity check before pushing: re-fetch unresolved threads from Step 1's API. The list should
 be empty. If anything is still unresolved, that's a bug in Step 4 — resolve it now rather
 than letting it bleed into the next iteration.
+
+### 5.5 Reconcile & close every addressed thread (before declaring done)
+
+Greptile re-posts findings as **new threads on each new commit** — so a thread you resolved in
+an earlier iteration is superseded by a fresh *unresolved* one for the same (now-fixed)
+finding, and per-fix resolution in Step 4 alone leaves stragglers open. **Every iteration
+after the score passes, and always as the final act before Step 6**, enumerate ALL Greptile
+threads and close every one whose finding is fixed or dispositioned:
+
+```bash
+# List every unresolved Greptile review thread with its id
+gh api graphql -f query='
+query($o:String!,$r:String!,$p:Int!){repository(owner:$o,name:$r){pullRequest(number:$p){
+  reviewThreads(first:100){nodes{id isResolved path line comments(first:1){nodes{author{login} body}}}}}}}' \
+  -F o="$OWNER" -F r="$REPO" -F p="$PR" \
+  --jq '.data.repository.pullRequest.reviewThreads.nodes[]
+        | select(.comments.nodes[0].author.login|test("greptile";"i"))
+        | select(.isResolved==false) | {id, path, line}'
+```
+
+For each unresolved thread returned: reply + resolve it (mutations in Step 4) if its finding
+is fixed or dispositioned. Leave a thread open **only** when you are deliberately deferring a
+decision to a human — and then name it explicitly in the report's `Remaining` line.
+
+**Done-gate:** the run is complete only when the score is 5/5 **AND** the query above returns
+an empty list (zero unresolved Greptile threads), except for threads you explicitly flagged as
+human-decision items. Never report "done" with silently-open threads.
 
 ### 6. Report
 
@@ -232,3 +272,4 @@ If it stopped on max iterations or a poll timeout, list remaining issues and nex
 - [ ] Polled in discrete Bash calls — no `while true; sleep` inside one call
 - [ ] Treated a fresh review/comment as completion, not only a check-run
 - [ ] Hard cap: 30 poll ticks per round, 5 review rounds
+- [ ] Reconciled threads (Step 5.5) — zero unresolved Greptile threads at the end, except explicitly-flagged human-decision items

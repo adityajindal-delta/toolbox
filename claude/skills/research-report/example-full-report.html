@@ -1,0 +1,614 @@
+<title>API Copilot Cost Study</title>
+<style>
+  :root {
+    --ground: #fcfcfc;
+    --surface: #f4f5f4;
+    --ink: #1c2023;
+    --ink-2: #4b5258;
+    --ink-3: #6d757c;
+    --rule: #c9ced2;
+    --rule-soft: #e2e5e7;
+    --accent: #0e6a5c;
+    --accent-ink: #0b574c;
+    --accent-soft: #dcecea;
+    --bar-1: #0e6a5c;
+    --bar-2: #4a998d;
+    --bar-3: #8fc0b8;
+    --bar-4: #c7ddd9;
+    --warn-bg: #faf3e3;
+    --warn-rule: #d9c48a;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
+    --sans: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #191c1e;
+      --surface: #212527;
+      --ink: #e6e4df;
+      --ink-2: #b3b8bc;
+      --ink-3: #8d9499;
+      --rule: #454b4f;
+      --rule-soft: #33383b;
+      --accent: #58b8a8;
+      --accent-ink: #74c8ba;
+      --accent-soft: #24413c;
+      --bar-1: #58b8a8;
+      --bar-2: #3d8a7c;
+      --bar-3: #2c655b;
+      --bar-4: #22443e;
+      --warn-bg: #2e2a1d;
+      --warn-rule: #6b5c2e;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #fcfcfc; --surface: #f4f5f4; --ink: #1c2023; --ink-2: #4b5258; --ink-3: #6d757c;
+    --rule: #c9ced2; --rule-soft: #e2e5e7; --accent: #0e6a5c; --accent-ink: #0b574c; --accent-soft: #dcecea;
+    --bar-1: #0e6a5c; --bar-2: #4a998d; --bar-3: #8fc0b8; --bar-4: #c7ddd9;
+    --warn-bg: #faf3e3; --warn-rule: #d9c48a;
+  }
+  :root[data-theme="dark"] {
+    --ground: #191c1e; --surface: #212527; --ink: #e6e4df; --ink-2: #b3b8bc; --ink-3: #8d9499;
+    --rule: #454b4f; --rule-soft: #33383b; --accent: #58b8a8; --accent-ink: #74c8ba; --accent-soft: #24413c;
+    --bar-1: #58b8a8; --bar-2: #3d8a7c; --bar-3: #2c655b; --bar-4: #22443e;
+    --warn-bg: #2e2a1d; --warn-rule: #6b5c2e;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+  }
+
+  .frame { display: grid; grid-template-columns: 252px minmax(0, 1fr); max-width: 1200px; margin: 0 auto; }
+
+  /* ---------- sidebar ---------- */
+  nav.toc {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    padding: 2.6rem 1.4rem 2rem 1.6rem;
+    border-right: 1px solid var(--rule-soft);
+    font-family: var(--sans);
+  }
+  nav.toc .toc-head {
+    font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 1rem; font-weight: 600;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: flex; gap: 0.55rem; align-items: baseline;
+    padding: 0.34rem 0.5rem 0.34rem 0.6rem;
+    color: var(--ink-2); text-decoration: none;
+    font-size: 0.82rem; line-height: 1.35;
+    border-radius: 3px;
+  }
+  nav.toc a .n { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-3); min-width: 1.5em; }
+  nav.toc a:hover { background: var(--surface); color: var(--ink); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent-ink); }
+  nav.toc a.active .n { color: var(--accent-ink); }
+  nav.toc .toc-sep { border: 0; border-top: 1px solid var(--rule-soft); margin: 0.9rem 0; }
+
+  /* ---------- main ---------- */
+  main { padding: 2.6rem 3rem 5rem; min-width: 0; }
+  .memo-head { border-bottom: 3px double var(--rule); padding-bottom: 1.6rem; margin-bottom: 2.4rem; }
+  .memo-head .doc-kind { font-family: var(--sans); font-size: 0.74rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin: 0 0 0.8rem; }
+  h1 { font-size: clamp(1.7rem, 3.4vw, 2.45rem); line-height: 1.16; margin: 0 0 0.5rem; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .memo-head .subtitle { font-size: 1.06rem; color: var(--ink-2); margin: 0 0 1.3rem; font-style: italic; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rule); font-family: var(--sans); }
+  .meta-grid > div { padding: 0.55rem 0.8rem; border-right: 1px solid var(--rule-soft); }
+  .meta-grid > div:last-child { border-right: 0; }
+  .meta-grid dt { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); margin: 0 0 0.15rem; }
+  .meta-grid dd { margin: 0; font-size: 0.85rem; color: var(--ink); }
+
+  section { margin: 0 0 3.2rem; }
+  h2 {
+    font-size: 1.42rem; font-weight: 600; letter-spacing: -0.005em;
+    margin: 0 0 1.1rem; padding-bottom: 0.45rem;
+    border-bottom: 1px solid var(--rule);
+    text-wrap: balance;
+  }
+  h2 .sn { color: var(--accent-ink); font-family: var(--mono); font-size: 1.05rem; margin-right: 0.55rem; font-weight: 500; }
+  h3 { font-size: 1.06rem; font-weight: 600; margin: 1.8rem 0 0.6rem; }
+  h3 .sn { color: var(--ink-3); font-family: var(--mono); font-size: 0.85rem; margin-right: 0.45rem; font-weight: 500; }
+  p { margin: 0 0 1rem; max-width: 70ch; text-wrap: pretty; }
+  ul, ol.body-list { max-width: 70ch; margin: 0 0 1rem; padding-left: 1.4rem; }
+  li { margin-bottom: 0.4rem; }
+  strong { font-weight: 650; }
+  code { font-family: var(--mono); font-size: 0.83em; background: var(--surface); border: 1px solid var(--rule-soft); border-radius: 3px; padding: 0.05em 0.32em; }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; margin: 1.2rem 0 0.4rem; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.82rem; line-height: 1.45; }
+  caption { caption-side: top; text-align: left; font-size: 0.78rem; color: var(--ink-3); padding-bottom: 0.45rem; font-family: var(--sans); }
+  caption b { color: var(--ink-2); font-weight: 600; }
+  th, td { border: 1px solid var(--rule); padding: 0.44rem 0.65rem; text-align: left; vertical-align: top; }
+  thead th { background: var(--surface); font-weight: 600; font-size: 0.76rem; letter-spacing: 0.02em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.78rem; }
+  tbody tr:hover td { background: var(--surface); }
+  td .sub { color: var(--ink-3); font-size: 0.74rem; display: block; }
+  .foot { font-size: 0.76rem; color: var(--ink-3); font-family: var(--sans); max-width: 75ch; margin: 0.4rem 0 0; }
+
+  /* ---------- summary figures strip ---------- */
+  .keyfigs { border: 1px solid var(--rule); margin: 1.4rem 0 1.6rem; }
+  .keyfigs-title { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--rule); background: var(--surface); font-weight: 600; }
+  .keyfigs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .keyfigs-grid > div { padding: 0.75rem 0.85rem; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); }
+  .keyfigs-grid .v { font-family: var(--mono); font-size: 1.12rem; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .keyfigs-grid .k { font-family: var(--sans); font-size: 0.75rem; color: var(--ink-2); margin-top: 0.15rem; line-height: 1.35; }
+
+  /* ---------- figures (bars) ---------- */
+  figure { margin: 1.6rem 0; border: 1px solid var(--rule); }
+  figure .fig-body { padding: 1.1rem 1.2rem 1.2rem; }
+  figcaption { font-family: var(--sans); font-size: 0.77rem; color: var(--ink-3); border-top: 1px solid var(--rule); padding: 0.55rem 0.85rem; }
+  figcaption b { color: var(--ink-2); }
+  .hbar-row { display: grid; grid-template-columns: 132px 1fr 74px; align-items: center; gap: 0.7rem; margin-bottom: 0.55rem; font-family: var(--sans); font-size: 0.8rem; }
+  .hbar-row .lbl { color: var(--ink-2); text-align: right; }
+  .hbar-track { background: var(--surface); border: 1px solid var(--rule-soft); height: 20px; position: relative; }
+  .hbar-fill { position: absolute; inset: 2px auto 2px 2px; background: var(--bar-1); min-width: 2px; }
+  .hbar-row .val { font-family: var(--mono); font-size: 0.75rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .stack { display: flex; height: 30px; border: 1px solid var(--rule-soft); background: var(--ground); }
+  .stack > span { display: block; height: 100%; border-right: 2px solid var(--ground); }
+  .stack > span:last-child { border-right: 0; }
+  .stack-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.3rem; margin-top: 0.7rem; font-family: var(--sans); font-size: 0.77rem; color: var(--ink-2); }
+  .stack-legend .sw { display: inline-block; width: 11px; height: 11px; border: 1px solid var(--rule); margin-right: 0.4rem; vertical-align: -1px; }
+
+  /* ---------- callouts ---------- */
+  .note { border: 1px solid var(--warn-rule); background: var(--warn-bg); padding: 0.85rem 1.05rem; margin: 1.2rem 0; font-size: 0.92rem; max-width: 72ch; }
+  .note .note-tag { font-family: var(--sans); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); display: block; margin-bottom: 0.3rem; }
+  .finding { border: 1px solid var(--rule); margin: 1.1rem 0; }
+  .finding-head { display: flex; align-items: baseline; gap: 0.7rem; padding: 0.6rem 0.9rem; background: var(--surface); border-bottom: 1px solid var(--rule); font-family: var(--sans); }
+  .finding-head .fid { font-family: var(--mono); color: var(--accent-ink); font-size: 0.8rem; font-weight: 600; }
+  .finding-head .ft { font-weight: 600; font-size: 0.92rem; }
+  .finding-body { padding: 0.85rem 0.95rem 0.2rem; }
+  .finding-body p { font-size: 0.95rem; }
+
+  a { color: var(--accent-ink); }
+  .backtop { font-family: var(--sans); font-size: 0.75rem; }
+
+  @media (max-width: 880px) {
+    .frame { grid-template-columns: 1fr; }
+    nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 1.2rem 1.4rem; }
+    nav.toc ol { column-count: 2; column-gap: 1.5rem; }
+    main { padding: 1.6rem 1.2rem 4rem; }
+    .hbar-row { grid-template-columns: 90px 1fr 64px; }
+  }
+  @media print {
+    nav.toc { display: none; }
+    .frame { display: block; }
+    body { font-size: 11pt; }
+  }
+</style>
+
+<div class="frame">
+<nav class="toc" aria-label="Report sections">
+  <p class="toc-head">Contents</p>
+  <ol>
+    <li><a href="#summary"><span class="n">1</span>Executive summary</a></li>
+    <li><a href="#method"><span class="n">2</span>Methodology &amp; caveats</a></li>
+    <li><a href="#timeline"><span class="n">3</span>Platform timeline</a></li>
+    <li><a href="#volume"><span class="n">4</span>Volume &amp; traffic mix</a></li>
+    <li><a href="#economics"><span class="n">5</span>Turn economics</a></li>
+    <li><a href="#drivers"><span class="n">6</span>Cost drivers, ranked</a></li>
+    <li><a href="#prompts"><span class="n">7</span>Prompt audit</a></li>
+    <li><a href="#working"><span class="n">8</span>What already works</a></li>
+    <li><a href="#observability"><span class="n">9</span>Observability findings</a></li>
+    <li><a href="#recs"><span class="n">10</span>Recommendations</a></li>
+    <li><a href="#testing"><span class="n">11</span>Prompt testing plan</a></li>
+  </ol>
+  <hr class="toc-sep">
+  <ol>
+    <li><a href="#apx-a"><span class="n">A</span>Sample tables by month</a></li>
+    <li><a href="#apx-b"><span class="n">B</span>Tool output sizes</a></li>
+    <li><a href="#apx-c"><span class="n">C</span>Whale traces</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="memo-head">
+  <p class="doc-kind">Internal Research Memorandum</p>
+  <h1>API Copilot: LLM Cost &amp; Prompt Efficiency Study</h1>
+  <p class="subtitle">Where the money goes per turn, what the prompts cause, and what to change first</p>
+  <dl class="meta-grid">
+    <div><dt>Date</dt><dd>July 15, 2026</dd></div>
+    <div><dt>Scope</dt><dd>api-console, prod traffic Mar 23 to Jul 15</dd></div>
+    <div><dt>Data source</dt><dd>Opik traces (191,803) + codebase review</dd></div>
+    <div><dt>Sample</dt><dd>~120 traces read in depth, 60 with full usage</dd></div>
+    <div><dt>Status</dt><dd>Findings final, actions proposed</dd></div>
+  </dl>
+</header>
+
+<!-- ============ 1 ============ -->
+<section id="summary">
+  <h2><span class="sn">1</span>Executive summary</h2>
+  <p>The copilot's LLM spend is dominated by a small class of expensive turns: full-script code generation. A typical clarifying reply costs about a cent; a "give me the complete code" reply costs $0.40 to $1.15, a 30 to 100x spread. These expensive turns are largely <strong>prompt-induced</strong>: the system prompt mandates completeness ("complete and executable, not partial snippets", "include ALL fields from the schema", "ALWAYS include a curl example") and contains no guidance to match response depth to the question or to emit only changed code when iterating.</p>
+  <p>On the input side, three compounding leaks inflate prompt tokens: retrieval results of up to 42k characters per <code>getDeltaDocs</code> call that then ride along in history on every later turn, users pasting whole source files and 256KB text attachments inlined verbatim, and boilerplate-heavy product JSON. Prompt caching and the June compaction feature mitigate much of this, which is why output tokens, priced at 5x input and never cached, remain the primary lever.</p>
+
+  <div class="keyfigs">
+    <div class="keyfigs-title">Summary figures</div>
+    <div class="keyfigs-grid">
+      <div><div class="v">~2,100/day</div><div class="k">traces per day, July (85-90% are chat turns)</div></div>
+      <div><div class="v">$0.01 vs $0.45</div><div class="k">median short turn vs median codegen turn</div></div>
+      <div><div class="v">$1.15</div><div class="k">most expensive normal turn sampled (Jun 5)</div></div>
+      <div><div class="v">70-87%</div><div class="k">share of codegen turn cost that is output tokens</div></div>
+      <div><div class="v">~80%</div><div class="k">estimated share of total spend from codegen turns</div></div>
+      <div><div class="v">$6k-11k/mo</div><div class="k">estimated main-model spend (sampled; verify vs invoice)</div></div>
+      <div><div class="v">42k chars</div><div class="k">largest single getDeltaDocs result (~11k tokens)</div></div>
+      <div><div class="v">35-55%</div><div class="k">projected total savings if R1-R6 land (est.)</div></div>
+    </div>
+  </div>
+
+  <p>The recommended sequence: rewrite the response-policy sections of the main prompt (admin panel, no deploy, projected 30-45% total reduction), then trim tool outputs and add an output ceiling. A replay-based evaluation against logged production turns verifies quality before rollout; the DB-backed prompt system gives one-click rollback.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="method">
+  <h2><span class="sn">2</span>Methodology &amp; caveats</h2>
+  <p>Six parallel investigations read the Opik project "API Console Prod" end to end: four sampled 15 chat turns each from late March-April, May, June, and July; one measured tool-call output sizes across ~20 tool spans; one dissected the largest logged traces. Every cost figure is OpenRouter's <em>billed</em> cost as recorded per turn (cache discounts included), not a token-price reconstruction. Codebase claims reference the repo at commit <code>e3eb292</code>.</p>
+  <h3>Caveats that bound the numbers</h3>
+  <ul>
+    <li><strong>No data before March 23.</strong> The Opik project was created then; January and February do not exist in any project in the workspace.</li>
+    <li><strong>Cost telemetry begins ~May 21.</strong> Earlier traces carry token usage but no billed cost. Spend before that must be reconstructed from tokens x price, and the model was different (see §3), so month-over-month cost comparisons are only meaningful from June onward.</li>
+    <li><strong>Sampling is stratified, not random.</strong> Agents deliberately sampled both quick and slow turns, which overweights codegen. Class medians are robust; the class mix (and therefore total-spend estimates) carries wide error bars and is presented as scenarios in §5.</li>
+    <li><strong>Trace counts are not comparable across eras.</strong> Before mid-May, tool calls and title generation were logged as separate root traces (~40% of rows); after, they nest inside the turn trace.</li>
+    <li>A handful of giant traces could not be fully read (the observability tooling itself fails on them; see §9). Their usage is inferred, and marked as such.</li>
+  </ul>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="timeline">
+  <h2><span class="sn">3</span>Platform timeline</h2>
+  <p>The system changed materially during the study window. Any trend line has to be read against these breakpoints.</p>
+  <div class="tablewrap"><table>
+    <caption><b>Table 3.1</b> Instrumentation and model eras, March-July 2026</caption>
+    <thead><tr><th>Date (approx.)</th><th>Change</th><th>Consequence for analysis</th></tr></thead>
+    <tbody>
+      <tr><td>Mar 23</td><td>Opik project goes live. Chat model is <code>google/gemini-3-flash-preview</code>. Turn traces named <code>chat-stream</code>.</td><td>Earliest data point; cheap per-token era.</td></tr>
+      <tr><td>Apr 27-30</td><td>Chat model switches to <code>anthropic/claude-sonnet-4.6</code>.</td><td>Large per-token cost step-up at window's end.</td></tr>
+      <tr><td>May 12-15</td><td>Re-instrumentation: turns become <code>Process Message</code>; categorization cron (<code>categorize-chat</code>, Haiku) launches.</td><td>Trace-name mix shifts; cron bursts at :00/:30.</td></tr>
+      <tr><td>May 21</td><td><code>total_estimated_cost</code> (billed $ from OpenRouter) starts being recorded.</td><td>Reliable cost data begins here.</td></tr>
+      <tr><td>Jun 9</td><td>Chat compaction / "Continue session" ships (<code>compact-chat</code>, Haiku, 8k-token cap).</td><td>Resumed threads drop from 100k+ to 8-12k prompt tokens.</td></tr>
+      <tr><td>Mid-late Jun</td><td>Conversation cache breakpoints (system prompt + last two user turns) reach steady state.</td><td>Similar-size prompts differ up to 15x in billed cost before vs after.</td></tr>
+      <tr><td>Jul</td><td>Steady state: Sonnet 4.6 chat, Haiku lite mode + crons, Gemini Flash Lite titles.</td><td>The era all projections are based on.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><span class="note-tag">Notable exception</span>One May 31 turn with a 545k-token prompt was silently served by <code>google/gemini-2.5-flash</code> instead of Sonnet, an apparent OpenRouter fallback when the conversation exceeded the model window. Quality and cost both become unpredictable when this happens (see R8).</div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="volume">
+  <h2><span class="sn">4</span>Volume &amp; traffic mix</h2>
+  <p>July runs at roughly <strong>2,100-2,200 traces/day</strong> (measured from page boundaries: ~31,500 traces over 15 days), of which 85-90% are chat turns, 8-12% categorization cron items, and 1-3% compaction runs. Daily volume ranged ~1,900 (Jul 13-15) to ~2,600 (Jul 2-7).</p>
+  <div class="tablewrap"><table>
+    <caption><b>Table 4.1</b> Trace-name mix by month (share of trace rows on probed pages)</caption>
+    <thead><tr><th>Window</th><th>Chat turns</th><th>Categorize cron</th><th>Compaction</th><th>Other</th></tr></thead>
+    <tbody>
+      <tr><td>Mar 23 - Apr 30</td><td>55-60% (<code>chat-stream</code>)</td><td>none (pre-launch)</td><td>none</td><td>~20-25% <code>ai.toolCall</code>, ~15-20% <code>generate-title</code> (separate root traces)</td></tr>
+      <tr><td>May</td><td>55-65%</td><td>35-45%, bursty at :00/:30</td><td>none</td><td>occasional blank-name rows</td></tr>
+      <tr><td>June</td><td>55-65%</td><td>30-40%, bursts of 50-100</td><td>2-5% (from Jun 9)</td><td>rare epoch-dated rows</td></tr>
+      <tr><td>Jul 1-15</td><td>85-90%</td><td>8-12%, batches of 4-12</td><td>1-3%</td><td>-</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">Cron economics: categorize-chat runs on Haiku with a compact transcript prompt; sampled batches complete in 2-3s per item. Estimated well under 2% of total spend. Title generation (Gemini Flash Lite, 20-token cap) is negligible at ~$0.0001/chat. The cost problem is the chat model, not the background jobs.</p>
+  <p>Usage character: the dominant workload is <strong>algo-bot development</strong>. Users iterate whole Python/Pine Script/VBA trading bots through chat, paste entire source files and terminal logs, and repeatedly ask for "complete code". Several sampled conversations were multi-day, multi-hundred-message threads operated like a pair-programming session, including in Hinglish and Marathi.</p>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="economics">
+  <h2><span class="sn">5</span>Turn economics</h2>
+  <p>Costs are sharply bimodal. Across the 44 Sonnet-era turns with billed cost, short turns (confirmations, clarifying questions, greetings) cluster at fractions of a cent to a few cents, while full-script codegen turns cluster between $0.24 and $1.15. Mid-range turns are comparatively rare.</p>
+
+  <figure>
+    <div class="fig-body">
+      <div class="hbar-row"><span class="lbl">Short / ack</span><div class="hbar-track"><span class="hbar-fill" style="width:2.5%"></span></div><span class="val">$0.012</span></div>
+      <div class="hbar-row"><span class="lbl">Prose / doc answer</span><div class="hbar-track"><span class="hbar-fill" style="width:24%"></span></div><span class="val">$0.12</span></div>
+      <div class="hbar-row"><span class="lbl">Codegen</span><div class="hbar-track"><span class="hbar-fill" style="width:90%"></span></div><span class="val">$0.45</span></div>
+    </div>
+    <figcaption><b>Figure 5.1</b> Median billed cost per turn by class, Sonnet era (n = 44 costed turns; June-July samples). Sampled extremes reach $1.15 (270k-token prompt) and $0.98 (dual 285KB paste).</figcaption>
+  </figure>
+
+  <div class="tablewrap"><table>
+    <caption><b>Table 5.1</b> Per-class economics, Sonnet era samples (Jun-Jul, plus late-May costed turns)</caption>
+    <thead><tr><th>Class</th><th class="num">n</th><th class="num">Median cost</th><th class="num">Range</th><th>Completion tokens</th><th>Prompt tokens</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>Short / ack</td><td class="num">19</td><td class="num">$0.012</td><td class="num">$0.004-0.13</td><td>11-400</td><td>8k-160k</td><td>confirmations, clarifying questions, debug-loop replies</td></tr>
+      <tr><td>Prose</td><td class="num">5</td><td class="num">$0.12</td><td class="num">$0.02-0.21</td><td>300-1,100</td><td>9k-106k</td><td>doc explanations, troubleshooting</td></tr>
+      <tr><td>Codegen</td><td class="num">20</td><td class="num">$0.45</td><td class="num">$0.13-1.15</td><td>7,700-53,900</td><td>27k-271k</td><td>full-script generation and re-generation</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">Output tokens are 70-87% of the billed cost on codegen turns (Sonnet output $15/M vs input $3/M, cache reads $0.30/M). The floor under every turn is the ~24k-char system prompt (~6.5k tokens), which is cached.</p>
+
+  <h3>5.1 Where the spend goes</h3>
+  <p>Weighting the class medians by plausible mix scenarios (the sample overweights codegen, so the true codegen share of turns is estimated at 15-35%):</p>
+  <figure>
+    <div class="fig-body">
+      <div class="stack" role="img" aria-label="Estimated spend share: codegen about 80 percent, prose about 11 percent, short and debug turns about 8 percent, background jobs under 2 percent">
+        <span style="width:80%; background:var(--bar-1)" title="Codegen ~80%"></span><span style="width:11%; background:var(--bar-2)" title="Prose ~11%"></span><span style="width:7%; background:var(--bar-3)" title="Short/debug ~7%"></span><span style="width:2%; background:var(--bar-4)" title="Crons ~2%"></span>
+      </div>
+      <div class="stack-legend">
+        <span><span class="sw" style="background:var(--bar-1)"></span>Codegen turns ~80%</span>
+        <span><span class="sw" style="background:var(--bar-2)"></span>Prose ~11%</span>
+        <span><span class="sw" style="background:var(--bar-3)"></span>Short/debug ~7%</span>
+        <span><span class="sw" style="background:var(--bar-4)"></span>Crons &lt;2%</span>
+      </div>
+    </div>
+    <figcaption><b>Figure 5.2</b> Estimated share of total LLM spend by turn class (mid scenario). Even at the low-end mix, codegen carries roughly three quarters of spend.</figcaption>
+  </figure>
+
+  <div class="tablewrap"><table>
+    <caption><b>Table 5.2</b> Monthly spend scenarios at July volume (~1,900 chat turns/day)</caption>
+    <thead><tr><th>Scenario</th><th class="num">Codegen share of turns</th><th class="num">Mean cost / turn</th><th class="num">Daily</th><th class="num">Monthly</th></tr></thead>
+    <tbody>
+      <tr><td>Low</td><td class="num">15%</td><td class="num">$0.10</td><td class="num">~$190</td><td class="num">~$5,700</td></tr>
+      <tr><td>Mid</td><td class="num">25%</td><td class="num">$0.15</td><td class="num">~$285</td><td class="num">~$8,600</td></tr>
+      <tr><td>High</td><td class="num">35%</td><td class="num">$0.20</td><td class="num">~$380</td><td class="num">~$11,400</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">These are sampled estimates for the main chat model only. The OpenRouter invoice is the ground truth; the first action in §10 includes reconciling against it.</p>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="drivers">
+  <h2><span class="sn">6</span>Cost drivers, ranked</h2>
+
+  <div class="finding"><div class="finding-head"><span class="fid">D1</span><span class="ft">Full-script re-emission on every iteration (output side, largest)</span></div>
+  <div class="finding-body">
+    <p>When a user iterates on code, the model re-emits the entire script. Evidence: a Jun 27 turn produced a 156k-char script for the ask "I need logic in this code don't delete my old code" ($0.99); a Jul 11 conversation regenerated a 168k-char Swift file multiple times ($0.88/turn); an Apr 30 turn streamed for 10.6 minutes emitting 52k completion tokens. The prompt requires this: "complete and executable (not partial snippets)", with no changed-sections-only rule for iterations. Six of 15 June samples had 22k-51k completion tokens.</p>
+  </div></div>
+
+  <div class="finding"><div class="finding-head"><span class="fid">D2</span><span class="ft">Whole-file pastes and inlined text attachments (input side)</span></div>
+  <div class="finding-body">
+    <p>Text attachments inline verbatim up to 256KB (~85k tokens each). The single most expensive clean measurement: $0.98 for one turn carrying two ~285KB text blobs (263,794 prompt tokens, largely uncached). One May user pasted an entire codebase including a live <code>.env</code>; turns of 100k-545k prompt tokens recur in every month sampled. Related waste: "expensive no-ops", e.g. 68k prompt tokens to reply "I'll wait" (26 tokens), $0.13 to answer a message consisting of the letter "s".</p>
+  </div></div>
+
+  <div class="finding"><div class="finding-head"><span class="fid">D3</span><span class="ft">Unbounded retrieval results that persist in history (input side)</span></div>
+  <div class="finding-body">
+    <p><code>getDeltaDocs</code> returns top-5 merged chunks with no size cap: typically 5-25k chars, up to <strong>~42k chars (~11k tokens)</strong> for order/bracket/option-chain topics, and the same giant chunks recur across many users' chats (bracket-order queries returned 18.6k/27.4k/41.9k chars in three different chats the same day). Once injected, results ride in history every turn: tool results were 20-45% of prompt tokens in sampled tool-using chats, and each tool round-trip re-sends the whole history (one 10-ticker turn billed 57.7k prompt tokens on a 23.4k-token context). <code>getProductBySymbol</code> adds ~1k tokens/call of which ~80% is boilerplate (zeroed fees, duplicated asset objects).</p>
+  </div></div>
+
+  <div class="finding"><div class="finding-head"><span class="fid">D4</span><span class="ft">Debug-loop conversations (volume x input)</span></div>
+  <div class="finding-body">
+    <p>Users operate bots on VPSes and paste terminal output turn after turn; each turn re-sends an 89k-160k token context for a 30-300 token reply. Caching keeps these at $0.03-0.06 per turn, but they are numerous and grow context toward the 300k cutoff.</p>
+  </div></div>
+
+  <div class="finding"><div class="finding-head"><span class="fid">D5</span><span class="ft">Leakage: aborted streams and silent model fallback</span></div>
+  <div class="finding-body">
+    <p>A Jul 2 turn died with a network error after 7.2 minutes and 5 doc lookups yet still billed $0.11: aborted long generations cost real money. Separately, the May 31 window-overflow turn was silently served by Gemini 2.5 Flash (573k tokens, $0.23), meaning the product's flagship answers can degrade without anyone choosing that.</p>
+  </div></div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="prompts">
+  <h2><span class="sn">7</span>Prompt audit</h2>
+  <div class="tablewrap"><table>
+    <caption><b>Table 7.1</b> The four prompts, audited</caption>
+    <thead><tr><th>Prompt</th><th>Backing / model</th><th>Size</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><code>delta-exchange-api</code> (main chat)</td><td>DB-backed, admin-editable; Sonnet 4.6</td><td>~4,800 words / ~6.5k tok</td><td><strong>Needs rewrite.</strong> Mandates verbosity (always-curl, all schema fields, multi-item sample arrays, fixed 5-step format); requires complete scripts with no iteration rule; patch-accumulated (lot-size rules 4x, .P suffix 2x, manifest instructions 3x, ~90 lines of tool examples); heavy blanket ALWAYS/MUST phrasing that Sonnet 4.6 follows literally, causing over-triggered boilerplate. Zero depth-matching guidance. Input cost itself is cached and minor; the damage is behavioral.</td></tr>
+      <tr><td><code>categorize-chat</code> (+ sentiment)</td><td>DB-backed; Haiku, strict json_schema</td><td>~350 words</td><td>Sound. One merged call for summary + category + sentiment, enum-constrained, robust fallbacks. No action.</td></tr>
+      <tr><td><code>title-gen</code></td><td>DB-backed; Gemini Flash Lite, 20-tok cap</td><td>~60 words</td><td>Sound. Negligible cost. No action.</td></tr>
+      <tr><td><code>compact-chat</code></td><td>File-backed; Haiku, 8k-tok cap</td><td>~350 words</td><td>Sound, and measurably effective (§8). No action.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The main prompt has no output ceiling behind it either: the chat route's <code>streamText</code> call sets no <code>maxTokens</code> (only <code>maxSteps: 20</code> for tool loops), so nothing bounds a runaway generation.</p>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="working">
+  <h2><span class="sn">8</span>What already works</h2>
+  <ul>
+    <li><strong>Prompt caching.</strong> Breakpoints on the system prompt and the last two user turns. A 160k-token-prompt July turn billed only $0.057; a 526-message thread at 192k prompt tokens billed $0.068 (roughly $0.60 uncached).</li>
+    <li><strong>Compaction / Continue session.</strong> Post-Jun 9 resumed threads run 8-12k prompt tokens (~$0.01/turn) versus 100k+ in comparable pre-compaction threads.</li>
+    <li><strong>Lite mode.</strong> The rate-limit Haiku path cost $0.02 on a 19k prompt; a meaningful lever if ever extended.</li>
+    <li><strong>Clarify-before-code behavior.</strong> The prompt's confirm-intent rule produces cheap 200-token requirement checks before expensive generations.</li>
+    <li><strong>Cost observability.</strong> Since May 21, every turn carries OpenRouter's billed cost; per-turn attribution made this study possible.</li>
+  </ul>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="observability">
+  <h2><span class="sn">9</span>Observability findings (not model cost, still costly)</h2>
+  <div class="finding"><div class="finding-head"><span class="fid">O1</span><span class="ft">Images are logged as JSON byte-maps, inflating traces up to 11M tokens</span></div>
+  <div class="finding-body"><p>Attached images serialize into Opik as <code>{"0":137,"1":80,...}</code>, one JSON key per byte (~9 chars/byte). A 4.6MB PNG becomes ~11.1M logged tokens, re-logged on every turn of its thread; 12 of 41 surveyed July traces exceeded 1M logged tokens this way. The model itself saw a normal ~2k-token image, so logged size overstates model input 5-10x on image turns. Side effects: Opik storage bloat and traces the tooling cannot read at all (reads crash on 5M+ spans).</p></div></div>
+  <div class="finding"><div class="finding-head"><span class="fid">O2</span><span class="ft">Secrets persist in trace payloads</span></div>
+  <div class="finding-body"><p>Sampled traces permanently store user-pasted live credentials: a full <code>.env</code> (May 10) and a hardcoded API key (May 22). The assistant declined to use them, but Opik retains the raw text.</p></div></div>
+  <div class="finding"><div class="finding-head"><span class="fid">O3</span><span class="ft">Accounting gaps</span></div>
+  <div class="finding-body"><p>No billed-cost field before ~May 21; pre-mid-May usage keys differ (camelCase); aborted streams sometimes record no usage at all despite billing. Dashboards summing trace costs undercount anything before June.</p></div></div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="recs">
+  <h2><span class="sn">10</span>Recommendations</h2>
+  <div class="tablewrap"><table>
+    <caption><b>Table 10.1</b> Proposed actions, ordered by expected return. Savings are estimates against total main-model spend; they overlap and do not sum linearly.</caption>
+    <thead><tr><th></th><th>Action</th><th>Addresses</th><th class="num">Est. impact</th><th>Effort / channel</th></tr></thead>
+    <tbody>
+      <tr><td class="num">R1</td><td><strong>Rewrite response policy in the main prompt.</strong> Depth matches the question; when iterating on code, emit only changed sections and offer the full script on request; curl examples only for endpoint questions; schema-derived sample responses only when asked.</td><td>D1, prose verbosity</td><td class="num">30-45%</td><td>Low. Admin panel, no deploy; replay-eval first (§11); one-click rollback.</td></tr>
+      <tr><td class="num">R2</td><td><strong>Structural rewrite of the same prompt.</strong> Dedupe to ~half length, explicit precedence, conditioned rules instead of blanket ALWAYS/MUST. Preserves every guardrail (security, platform scope, lot-size authority, .P handling, IP whitelisting).</td><td>quality, "answers not matched to query"</td><td class="num">quality</td><td>Low-medium. Ship with R1 as one prompt version; sync migration seed after.</td></tr>
+      <tr><td class="num">R3</td><td><strong><code>maxTokens</code> ceiling (~16k) on the chat <code>streamText</code> call.</strong></td><td>runaway outputs</td><td class="num">tail risk</td><td>Trivial code PR.</td></tr>
+      <tr><td class="num">R4</td><td><strong>Cap <code>getDeltaDocs</code> merged output</strong> (~8-10k chars with truncation marker), revisit top-5 merge, set a TTL on the docs Redis cache.</td><td>D3</td><td class="num">5-10%</td><td>Small code PR + retrieval QA.</td></tr>
+      <tr><td class="num">R5</td><td><strong>Field allowlist on <code>getProductBySymbol</code></strong> (~1k to ~200 tokens per call).</td><td>D3</td><td class="num">1-2%</td><td>Trivial code PR.</td></tr>
+      <tr><td class="num">R6</td><td><strong>History hygiene:</strong> drop or stub tool results older than N turns from the messages sent upstream.</td><td>D3, D4</td><td class="num">5-15% input</td><td>Medium; needs care with cache prefixes.</td></tr>
+      <tr><td class="num">R7</td><td><strong>Paste/attachment policy:</strong> tighter inline ceiling or auto-summarize oversized pastes; nudge users toward attaching rather than re-pasting.</td><td>D2</td><td class="num">whale prevention</td><td>Medium, product decision.</td></tr>
+      <tr><td class="num">R8</td><td><strong>Pin model routing:</strong> disallow silent large-context fallback; surface the context limit instead.</td><td>D5, quality</td><td class="num">predictability</td><td>Small config/PR.</td></tr>
+      <tr><td class="num">R9</td><td><strong>Fix Opik logging:</strong> strip image bytes (log metadata only) and scrub credential-shaped strings.</td><td>O1, O2</td><td class="num">observability</td><td>Small code PR.</td></tr>
+      <tr><td class="num">R10</td><td><strong>Standing metrics:</strong> weekly avg/p90 output-tokens per turn and cost per turn by class; reconcile sampled estimates against the OpenRouter invoice.</td><td>governance</td><td class="num">-</td><td>Dashboard work in Opik.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Deliberately not recommended now: routing simple queries to Haiku and a pre-classification step. Both add latency and complexity for less return than R1; revisit after R1's effect is measured.</p>
+</section>
+
+<!-- ============ 11 ============ -->
+<section id="testing">
+  <h2><span class="sn">11</span>Prompt testing plan (replay evaluation)</h2>
+  <p>Every production turn is already logged with its exact user message, conversation prefix, tool results, and the reply the current prompt produced. That makes a before/after comparison direct:</p>
+  <ol class="body-list">
+    <li><strong>Build the replay set.</strong> ~25-30 real conversations from Opik covering the buckets: doc question, symbol/lot-size query, fresh codegen, code iteration, debug loop, greeting/clarify, Trading Bot troubleshooting, plus 2-3 in Hindi/Hinglish.</li>
+    <li><strong>Replay on devnet</strong> against the new prompt version (DB-backed: switching versions is an admin action). Same model, temperature 0, so output differences are attributable to the prompt.</li>
+    <li><strong>Compare pairs:</strong> output tokens (objective) and answer quality: does the shorter answer still cover the user's need, are facts intact, is depth appropriate. Human review at this sample size, optionally an LLM judge with a "did the shorter answer lose anything needed?" rubric; keep the set as a rerunnable Opik experiment.</li>
+    <li><strong>Guardrail probes:</strong> request API keys, ask about other exchanges, ask which model it runs on, request risky trades: confirm refusals survived the rewrite.</li>
+    <li><strong>Ship and watch:</strong> roll out via admin panel; monitor avg output-tokens/turn, cost/turn, and downvote reasons for a week; rollback is one click. Then sync the winning text into the migration seed.</li>
+  </ol>
+</section>
+
+<!-- ============ Appendices ============ -->
+<section id="apx-a">
+  <h2><span class="sn">A</span>Appendix: sample tables by month</h2>
+
+  <div class="tablewrap"><table>
+    <caption><b>Table A.1</b> March 23 - April 30 (era: <code>chat-stream</code>, Gemini 3 Flash Preview until ~Apr 27; no billed-cost field)</caption>
+    <thead><tr><th>Date</th><th class="num">Completion tok</th><th class="num">Prompt tok</th><th>Class</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Mar 24</td><td class="num">13,749</td><td class="num">129,802</td><td>codegen</td><td>full webhook-bot rewrite; 383k-tok logged payload</td></tr>
+      <tr><td>Mar 24</td><td class="num">932</td><td class="num">28,408</td><td>prose</td><td>EMA-100 vs EMA-200 explanation</td></tr>
+      <tr><td>Mar 25</td><td class="num">-</td><td class="num">-</td><td>other</td><td>aborted stream, 60s, no usage recorded</td></tr>
+      <tr><td>Mar 25</td><td class="num">589</td><td class="num">15,552</td><td>prose</td><td>short-side logic explanation</td></tr>
+      <tr><td>Mar 30</td><td class="num">2,685</td><td class="num">103,916</td><td>codegen</td><td>bot error fixes; 319k-tok logged payload</td></tr>
+      <tr><td>Apr 3</td><td class="num">3,166</td><td class="num">21,779</td><td>codegen</td><td>multi-timeframe backtester fixes</td></tr>
+      <tr><td>Apr 7</td><td class="num">1,962</td><td class="num">20,936</td><td>codegen</td><td>heartbeat-log update</td></tr>
+      <tr><td>Apr 11</td><td class="num">3,940</td><td class="num">44,710</td><td>codegen</td><td>RiskManager fix, full code</td></tr>
+      <tr><td>Apr 15</td><td class="num">2,168</td><td class="num">45,872</td><td>codegen</td><td>supertrend engine rewrite</td></tr>
+      <tr><td>Apr 18</td><td class="num">3,639</td><td class="num">38,579</td><td>codegen</td><td>SessionEngine correction</td></tr>
+      <tr><td>Apr 18</td><td class="num">437</td><td class="num">19,944</td><td>other</td><td>clarifying question to user</td></tr>
+      <tr><td>Apr 23</td><td class="num">2,961</td><td class="num">17,871</td><td>codegen</td><td>paper-bot fixes; 6 parallel product lookups inlined</td></tr>
+      <tr><td>Apr 27</td><td class="num">4,102</td><td class="num">10,314</td><td>codegen</td><td>tkinter alert colors</td></tr>
+      <tr><td>Apr 30</td><td class="num">52,115</td><td class="num">98,331</td><td>codegen</td><td>10.6-min Sonnet stream, full "v12" bot (137k chars)</td></tr>
+      <tr><td>Apr 30</td><td class="num">26</td><td class="num">68,239</td><td>short</td><td>"I'll wait" reply on 68k-token context</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="tablewrap"><table>
+    <caption><b>Table A.2</b> May (cost field exists only from ~May 21; early-May rows are <code>chat-stream</code>)</caption>
+    <thead><tr><th>Date</th><th class="num">Completion tok</th><th class="num">Prompt tok</th><th class="num">Cost</th><th>Class</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>May 31</td><td class="num">230</td><td class="num">14,643</td><td class="num">$0.047</td><td>short</td><td>webhook URL explanation</td></tr>
+      <tr><td>May 31</td><td class="num">28,536</td><td class="num">545,129</td><td class="num">$0.235</td><td>codegen</td><td>served by gemini-2.5-flash (window fallback)</td></tr>
+      <tr><td>May 28</td><td class="num">88</td><td class="num">7,816</td><td class="num">$0.024</td><td>short</td><td>clarify garbled query</td></tr>
+      <tr><td>May 28</td><td class="num">10,853</td><td class="num">60,107</td><td class="num">$0.342</td><td>codegen</td><td>options-straddle bot, tools used</td></tr>
+      <tr><td>May 23</td><td class="num">99</td><td class="num">11,589</td><td class="num">$0.036</td><td>short</td><td>request for error message</td></tr>
+      <tr><td>May 23</td><td class="num">16,652</td><td class="num">86,721</td><td class="num">$0.510</td><td>codegen</td><td>SMC algo bot, 6 tool calls</td></tr>
+      <tr><td>May 22</td><td class="num">17,169</td><td class="num">37,943</td><td class="num">$0.371</td><td>codegen</td><td>full rewritten 0DTE script</td></tr>
+      <tr><td>May 22</td><td class="num">83</td><td class="num">44,119</td><td class="num">$0.134</td><td>short</td><td>user typed "s"</td></tr>
+      <tr><td>May 21</td><td class="num">384</td><td class="num">45,627</td><td class="num">$0.143</td><td>short</td><td>small Numba bug fix</td></tr>
+      <tr><td>May 15</td><td class="num">60</td><td class="num">7,805</td><td class="num">n/a</td><td>short</td><td>greeting</td></tr>
+      <tr><td>May 15</td><td class="num">29,873</td><td class="num">79,087</td><td class="num">n/a</td><td>codegen</td><td>multi-file options engine</td></tr>
+      <tr><td>May 10</td><td class="num">20,321</td><td class="num">141,337</td><td class="num">n/a</td><td>codegen</td><td>user pasted entire codebase incl. .env</td></tr>
+      <tr><td>May 9</td><td class="num">36</td><td class="num">133,039</td><td class="num">n/a</td><td>short</td><td>user sent "."</td></tr>
+      <tr><td>May 6</td><td class="num">7,924</td><td class="num">27,709</td><td class="num">n/a</td><td>codegen</td><td>HTML/JS funding-rate page</td></tr>
+      <tr><td>May 1</td><td class="num">1,052</td><td class="num">19,136</td><td class="num">n/a</td><td>prose</td><td>TradingView troubleshooting</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="tablewrap"><table>
+    <caption><b>Table A.3</b> June</caption>
+    <thead><tr><th>Date</th><th class="num">Completion tok</th><th class="num">Prompt tok</th><th class="num">Cost</th><th>Class</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Jun 1</td><td class="num">46</td><td class="num">21,503</td><td class="num">$0.065</td><td>short</td><td></td></tr>
+      <tr><td>Jun 2</td><td class="num">128</td><td class="num">9,153</td><td class="num">$0.029</td><td>short</td><td></td></tr>
+      <tr><td>Jun 5</td><td class="num">22,758</td><td class="num">270,873</td><td class="num">$1.154</td><td>codegen</td><td>multi-day thread, scripts re-pasted every turn, pre-compaction</td></tr>
+      <tr><td>Jun 8</td><td class="num">310</td><td class="num">18,942</td><td class="num">$0.021</td><td>prose</td><td>lite mode (Haiku)</td></tr>
+      <tr><td>Jun 9</td><td class="num">34,693</td><td class="num">54,841</td><td class="num">$0.726</td><td>codegen</td><td></td></tr>
+      <tr><td>Jun 11</td><td class="num">76</td><td class="num">9,586</td><td class="num">$0.012</td><td>short</td><td>compaction resume ack</td></tr>
+      <tr><td>Jun 15</td><td class="num">49,904</td><td class="num">127,983</td><td class="num">$0.791</td><td>codegen</td><td></td></tr>
+      <tr><td>Jun 17</td><td class="num">64</td><td class="num">8,655</td><td class="num">$0.008</td><td>short</td><td>compaction resume ack</td></tr>
+      <tr><td>Jun 20</td><td class="num">25,238</td><td class="num">38,558</td><td class="num">$0.394</td><td>codegen</td><td>full Swift app</td></tr>
+      <tr><td>Jun 22</td><td class="num">11</td><td class="num">11,554</td><td class="num">$0.004</td><td>short</td><td></td></tr>
+      <tr><td>Jun 25</td><td class="num">36,280</td><td class="num">92,172</td><td class="num">$0.705</td><td>codegen</td><td>with getDeltaDocs</td></tr>
+      <tr><td>Jun 27</td><td class="num">50,920</td><td class="num">70,050</td><td class="num">$0.995</td><td>codegen</td><td>156k-char regen for a one-line ask</td></tr>
+      <tr><td>Jun 28</td><td class="num">30,752</td><td class="num">46,175</td><td class="num">$0.479</td><td>codegen</td><td>"complete modified code"</td></tr>
+      <tr><td>Jun 29</td><td class="num">388</td><td class="num">11,986</td><td class="num">$0.010</td><td>codegen</td><td>small Pine patch</td></tr>
+      <tr><td>Jun 30</td><td class="num">1,069</td><td class="num">106,030</td><td class="num">$0.214</td><td>prose</td><td>scope clarification on 141k-char SwiftUI paste</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="tablewrap"><table>
+    <caption><b>Table A.4</b> July 1-15</caption>
+    <thead><tr><th>Date</th><th class="num">Completion tok</th><th class="num">Prompt tok</th><th class="num">Cost</th><th>Class</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Jul 1</td><td class="num">105</td><td class="num">10,761</td><td class="num">$0.017</td><td>short</td><td>resume-session ack</td></tr>
+      <tr><td>Jul 2</td><td class="num">-</td><td class="num">-</td><td class="num">$0.111</td><td>other</td><td>aborted stream after 7.2 min + 5 doc lookups, still billed</td></tr>
+      <tr><td>Jul 3</td><td class="num">16,308</td><td class="num">44,166</td><td class="num">$0.312</td><td>codegen</td><td></td></tr>
+      <tr><td>Jul 4</td><td class="num">30</td><td class="num">17,175</td><td class="num">$0.006</td><td>short</td><td></td></tr>
+      <tr><td>Jul 5</td><td class="num">14,088</td><td class="num">31,617</td><td class="num">$0.243</td><td>codegen</td><td>full VBA module</td></tr>
+      <tr><td>Jul 6</td><td class="num">16</td><td class="num">36,636</td><td class="num">$0.039</td><td>short</td><td></td></tr>
+      <tr><td>Jul 7</td><td class="num">7,687</td><td class="num">55,661</td><td class="num">$0.132</td><td>codegen</td><td></td></tr>
+      <tr><td>Jul 8</td><td class="num">67</td><td class="num">89,176</td><td class="num">$0.028</td><td>short</td><td>debug-loop reply</td></tr>
+      <tr><td>Jul 9</td><td class="num" colspan="2">unrecoverable</td><td class="num">-</td><td>huge</td><td>2.74M-token logged payload; tooling cannot read it (see O1)</td></tr>
+      <tr><td>Jul 10</td><td class="num">81</td><td class="num">16,810</td><td class="num">$0.007</td><td>short</td><td></td></tr>
+      <tr><td>Jul 11</td><td class="num">53,882</td><td class="num">230,229</td><td class="num">$0.879</td><td>codegen</td><td>full SwiftUI app, 180k-char output</td></tr>
+      <tr><td>Jul 12</td><td class="num">59</td><td class="num">8,610</td><td class="num">$0.004</td><td>short</td><td></td></tr>
+      <tr><td>Jul 13</td><td class="num">19,583</td><td class="num">112,735</td><td class="num">$0.374</td><td>codegen</td><td>Marathi conversation, full Python bot</td></tr>
+      <tr><td>Jul 14</td><td class="num">297</td><td class="num">159,835</td><td class="num">$0.057</td><td>short</td><td>157,937-char "APPEND-ONLY" doc pasted twice; cache saved it</td></tr>
+      <tr><td>Jul 15</td><td class="num">35,265</td><td class="num">55,689</td><td class="num">$0.713</td><td>codegen</td><td>full bot script, Hinglish</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="apx-b">
+  <h2><span class="sn">B</span>Appendix: tool output sizes</h2>
+  <div class="tablewrap"><table>
+    <caption><b>Table B.1</b> Sampled tool-call outputs (June 29 - July 15)</caption>
+    <thead><tr><th>Tool</th><th>Query / symbol</th><th class="num">Output size</th></tr></thead>
+    <tbody>
+      <tr><td>getDeltaDocs</td><td>bracket order placement SL TP perpetual futures</td><td class="num">~41,900 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>option chain tickers API underlying asset symbols expiry date</td><td class="num">~37,500 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>24 hour volume open interest market data tickers</td><td class="num">~28,300 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>options chain market data API</td><td class="num">~27,600 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>bracket orders stop loss take profit API endpoint</td><td class="num">~27,400 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>place order API parameters time_in_force reduce_only post_only</td><td class="num">~24,200 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>historical candles OHLCV data REST API endpoint</td><td class="num">~18,800 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>bracket order update SL trailing PUT POST v2 orders bracket</td><td class="num">~18,600 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>wallet balance available margin equity</td><td class="num">~13,500 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>TradingView Pine Script strategy alerts webhook (trading-bot ns)</td><td class="num">~10,100 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>get positions open positions API endpoint</td><td class="num">~9,900 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>history candles rate limit pagination REST API</td><td class="num">~9,400 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>IP whitelisting API key error</td><td class="num">~3,700 chars</td></tr>
+      <tr><td>getDeltaDocs</td><td>TradingView webhook payload format (trading-bot ns)</td><td class="num">~1,900 chars</td></tr>
+      <tr><td>getProductBySymbol</td><td>BTCUSD / ETHUSD / SOLUSD (each)</td><td class="num">~4,300 chars</td></tr>
+      <tr><td>getProductTicker</td><td>10 symbols fanned out in one turn</td><td class="num">~1,700-1,900 chars each</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">Patterns: endpoint-spec topics (bracket, orders, tickers, option chain) dominate the top end; trading-bot namespace results are much smaller (2-10k chars). The same topics recur across different users' chats, re-injecting the same giant chunks. Tool results measured at 20-45% of prompt tokens in tool-using conversations; no-tool turns of similar depth ran 17-23k prompt tokens vs 45-62k for tool-using turns.</p>
+</section>
+
+<section id="apx-c">
+  <h2><span class="sn">C</span>Appendix: whale traces</h2>
+  <div class="tablewrap"><table>
+    <caption><b>Table C.1</b> Largest logged traces among 41 surveyed July turns (12 exceeded 1M logged tokens)</caption>
+    <thead><tr><th class="num">Logged size (tok)</th><th class="num">Prompt tok</th><th class="num">Completion</th><th class="num">Cost</th><th>Cause</th></tr></thead>
+    <tbody>
+      <tr><td class="num">11.13M x4</td><td class="num">unreadable</td><td class="num">-</td><td class="num">-</td><td>one ~4.6MB PNG serialized as a JSON byte-map, re-logged on 4 consecutive turns</td></tr>
+      <tr><td class="num">5.40M</td><td class="num">unreadable</td><td class="num">-</td><td class="num">-</td><td>~2.2MB image byte-map (inferred)</td></tr>
+      <tr><td class="num">2.81M</td><td class="num">unreadable</td><td class="num">-</td><td class="num">-</td><td>~1.2MB image byte-map (inferred)</td></tr>
+      <tr><td class="num">1.36M</td><td class="num">263,794</td><td class="num">927</td><td class="num">$0.977</td><td>two ~285KB inlined text blobs (~85k tok each) + ~490KB PNG; mostly uncached</td></tr>
+      <tr><td class="num">1.06M x5</td><td class="num">191,990</td><td class="num">593</td><td class="num">$0.068</td><td>526-message history + ~400KB PNG byte-map re-logged every turn; heavily cached</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">Verdict: image byte-maps are an observability bug (O1), not model cost; the model received images normally (~2k tokens each). The genuinely expensive whales are inlined text: the $0.98 dual-paste turn is the costliest cleanly measured turn in the study.</p>
+  <p class="backtop"><a href="#summary">Back to top</a></p>
+</section>
+
+</main>
+</div>
+
+<script>
+  const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  const byId = {};
+  links.forEach(a => { byId[a.getAttribute('href').slice(1)] = a; });
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('active'));
+        const a = byId[e.target.id];
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => obs.observe(s));
+</script>

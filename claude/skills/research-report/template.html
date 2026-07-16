@@ -1,0 +1,238 @@
+<!--
+  RESEARCH REPORT ARTIFACT TEMPLATE
+  Usage: copy this file's <style>, nav skeleton, and component patterns verbatim.
+  Only replace content between BEGIN/END CONTENT markers and the <title>.
+  Do NOT redesign the CSS. Both themes are token-driven; keep it that way.
+  Copy rules: no em dashes anywhere; plain, direct prose; tabular numbers in .num cells.
+-->
+<title>REPLACE: Report Title</title>
+<style>
+  :root {
+    --ground: #fcfcfc; --surface: #f4f5f4; --ink: #1c2023; --ink-2: #4b5258; --ink-3: #6d757c;
+    --rule: #c9ced2; --rule-soft: #e2e5e7;
+    --accent: #0e6a5c; --accent-ink: #0b574c; --accent-soft: #dcecea;
+    --bar-1: #0e6a5c; --bar-2: #4a998d; --bar-3: #8fc0b8; --bar-4: #c7ddd9;
+    --warn-bg: #faf3e3; --warn-rule: #d9c48a;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
+    --sans: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #191c1e; --surface: #212527; --ink: #e6e4df; --ink-2: #b3b8bc; --ink-3: #8d9499;
+      --rule: #454b4f; --rule-soft: #33383b; --accent: #58b8a8; --accent-ink: #74c8ba; --accent-soft: #24413c;
+      --bar-1: #58b8a8; --bar-2: #3d8a7c; --bar-3: #2c655b; --bar-4: #22443e;
+      --warn-bg: #2e2a1d; --warn-rule: #6b5c2e;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #fcfcfc; --surface: #f4f5f4; --ink: #1c2023; --ink-2: #4b5258; --ink-3: #6d757c;
+    --rule: #c9ced2; --rule-soft: #e2e5e7; --accent: #0e6a5c; --accent-ink: #0b574c; --accent-soft: #dcecea;
+    --bar-1: #0e6a5c; --bar-2: #4a998d; --bar-3: #8fc0b8; --bar-4: #c7ddd9;
+    --warn-bg: #faf3e3; --warn-rule: #d9c48a;
+  }
+  :root[data-theme="dark"] {
+    --ground: #191c1e; --surface: #212527; --ink: #e6e4df; --ink-2: #b3b8bc; --ink-3: #8d9499;
+    --rule: #454b4f; --rule-soft: #33383b; --accent: #58b8a8; --accent-ink: #74c8ba; --accent-soft: #24413c;
+    --bar-1: #58b8a8; --bar-2: #3d8a7c; --bar-3: #2c655b; --bar-4: #22443e;
+    --warn-bg: #2e2a1d; --warn-rule: #6b5c2e;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.62; }
+  .frame { display: grid; grid-template-columns: 252px minmax(0, 1fr); max-width: 1200px; margin: 0 auto; }
+  nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 2.6rem 1.4rem 2rem 1.6rem; border-right: 1px solid var(--rule-soft); font-family: var(--sans); }
+  nav.toc .toc-head { font-size: 0.72rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 1rem; font-weight: 600; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; }
+  nav.toc li { margin: 0; }
+  nav.toc a { display: flex; gap: 0.55rem; align-items: baseline; padding: 0.34rem 0.5rem 0.34rem 0.6rem; color: var(--ink-2); text-decoration: none; font-size: 0.82rem; line-height: 1.35; border-radius: 3px; }
+  nav.toc a .n { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-3); min-width: 1.5em; }
+  nav.toc a:hover { background: var(--surface); color: var(--ink); }
+  nav.toc a.active { background: var(--accent-soft); color: var(--accent-ink); }
+  nav.toc a.active .n { color: var(--accent-ink); }
+  nav.toc .toc-sep { border: 0; border-top: 1px solid var(--rule-soft); margin: 0.9rem 0; }
+  main { padding: 2.6rem 3rem 5rem; min-width: 0; }
+  .memo-head { border-bottom: 3px double var(--rule); padding-bottom: 1.6rem; margin-bottom: 2.4rem; }
+  .memo-head .doc-kind { font-family: var(--sans); font-size: 0.74rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; margin: 0 0 0.8rem; }
+  h1 { font-size: clamp(1.7rem, 3.4vw, 2.45rem); line-height: 1.16; margin: 0 0 0.5rem; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .memo-head .subtitle { font-size: 1.06rem; color: var(--ink-2); margin: 0 0 1.3rem; font-style: italic; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rule); font-family: var(--sans); }
+  .meta-grid > div { padding: 0.55rem 0.8rem; border-right: 1px solid var(--rule-soft); }
+  .meta-grid > div:last-child { border-right: 0; }
+  .meta-grid dt { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); margin: 0 0 0.15rem; }
+  .meta-grid dd { margin: 0; font-size: 0.85rem; color: var(--ink); }
+  section { margin: 0 0 3.2rem; }
+  h2 { font-size: 1.42rem; font-weight: 600; letter-spacing: -0.005em; margin: 0 0 1.1rem; padding-bottom: 0.45rem; border-bottom: 1px solid var(--rule); text-wrap: balance; }
+  h2 .sn { color: var(--accent-ink); font-family: var(--mono); font-size: 1.05rem; margin-right: 0.55rem; font-weight: 500; }
+  h3 { font-size: 1.06rem; font-weight: 600; margin: 1.8rem 0 0.6rem; }
+  h3 .sn { color: var(--ink-3); font-family: var(--mono); font-size: 0.85rem; margin-right: 0.45rem; font-weight: 500; }
+  p { margin: 0 0 1rem; max-width: 70ch; text-wrap: pretty; }
+  ul, ol.body-list { max-width: 70ch; margin: 0 0 1rem; padding-left: 1.4rem; }
+  li { margin-bottom: 0.4rem; }
+  strong { font-weight: 650; }
+  code { font-family: var(--mono); font-size: 0.83em; background: var(--surface); border: 1px solid var(--rule-soft); border-radius: 3px; padding: 0.05em 0.32em; }
+  .tablewrap { overflow-x: auto; margin: 1.2rem 0 0.4rem; }
+  table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.82rem; line-height: 1.45; }
+  caption { caption-side: top; text-align: left; font-size: 0.78rem; color: var(--ink-3); padding-bottom: 0.45rem; font-family: var(--sans); }
+  caption b { color: var(--ink-2); font-weight: 600; }
+  th, td { border: 1px solid var(--rule); padding: 0.44rem 0.65rem; text-align: left; vertical-align: top; }
+  thead th { background: var(--surface); font-weight: 600; font-size: 0.76rem; letter-spacing: 0.02em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.78rem; }
+  tbody tr:hover td { background: var(--surface); }
+  td .sub { color: var(--ink-3); font-size: 0.74rem; display: block; }
+  .foot { font-size: 0.76rem; color: var(--ink-3); font-family: var(--sans); max-width: 75ch; margin: 0.4rem 0 0; }
+  .keyfigs { border: 1px solid var(--rule); margin: 1.4rem 0 1.6rem; }
+  .keyfigs-title { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--rule); background: var(--surface); font-weight: 600; }
+  .keyfigs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .keyfigs-grid > div { padding: 0.75rem 0.85rem; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); }
+  .keyfigs-grid .v { font-family: var(--mono); font-size: 1.12rem; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .keyfigs-grid .k { font-family: var(--sans); font-size: 0.75rem; color: var(--ink-2); margin-top: 0.15rem; line-height: 1.35; }
+  figure { margin: 1.6rem 0; border: 1px solid var(--rule); }
+  figure .fig-body { padding: 1.1rem 1.2rem 1.2rem; }
+  figcaption { font-family: var(--sans); font-size: 0.77rem; color: var(--ink-3); border-top: 1px solid var(--rule); padding: 0.55rem 0.85rem; }
+  figcaption b { color: var(--ink-2); }
+  .hbar-row { display: grid; grid-template-columns: 132px 1fr 74px; align-items: center; gap: 0.7rem; margin-bottom: 0.55rem; font-family: var(--sans); font-size: 0.8rem; }
+  .hbar-row .lbl { color: var(--ink-2); text-align: right; }
+  .hbar-track { background: var(--surface); border: 1px solid var(--rule-soft); height: 20px; position: relative; }
+  .hbar-fill { position: absolute; inset: 2px auto 2px 2px; background: var(--bar-1); min-width: 2px; }
+  .hbar-row .val { font-family: var(--mono); font-size: 0.75rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .stack { display: flex; height: 30px; border: 1px solid var(--rule-soft); background: var(--ground); }
+  .stack > span { display: block; height: 100%; border-right: 2px solid var(--ground); }
+  .stack > span:last-child { border-right: 0; }
+  .stack-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.3rem; margin-top: 0.7rem; font-family: var(--sans); font-size: 0.77rem; color: var(--ink-2); }
+  .stack-legend .sw { display: inline-block; width: 11px; height: 11px; border: 1px solid var(--rule); margin-right: 0.4rem; vertical-align: -1px; }
+  .note { border: 1px solid var(--warn-rule); background: var(--warn-bg); padding: 0.85rem 1.05rem; margin: 1.2rem 0; font-size: 0.92rem; max-width: 72ch; }
+  .note .note-tag { font-family: var(--sans); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); display: block; margin-bottom: 0.3rem; }
+  .finding { border: 1px solid var(--rule); margin: 1.1rem 0; }
+  .finding-head { display: flex; align-items: baseline; gap: 0.7rem; padding: 0.6rem 0.9rem; background: var(--surface); border-bottom: 1px solid var(--rule); font-family: var(--sans); }
+  .finding-head .fid { font-family: var(--mono); color: var(--accent-ink); font-size: 0.8rem; font-weight: 600; }
+  .finding-head .ft { font-weight: 600; font-size: 0.92rem; }
+  .finding-body { padding: 0.85rem 0.95rem 0.2rem; }
+  .finding-body p { font-size: 0.95rem; }
+  a { color: var(--accent-ink); }
+  .backtop { font-family: var(--sans); font-size: 0.75rem; }
+  @media (max-width: 880px) {
+    .frame { grid-template-columns: 1fr; }
+    nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 1.2rem 1.4rem; }
+    nav.toc ol { column-count: 2; column-gap: 1.5rem; }
+    main { padding: 1.6rem 1.2rem 4rem; }
+    .hbar-row { grid-template-columns: 90px 1fr 64px; }
+  }
+  @media print { nav.toc { display: none; } .frame { display: block; } body { font-size: 11pt; } }
+</style>
+
+<div class="frame">
+<nav class="toc" aria-label="Report sections">
+  <p class="toc-head">Contents</p>
+  <ol>
+    <!-- BEGIN CONTENT: one <li> per numbered section; keep id anchors in sync -->
+    <li><a href="#summary"><span class="n">1</span>Executive summary</a></li>
+    <li><a href="#section-2"><span class="n">2</span>REPLACE section title</a></li>
+    <!-- END CONTENT -->
+  </ol>
+  <hr class="toc-sep">
+  <ol>
+    <!-- BEGIN CONTENT: appendix links (optional; delete the <hr> and this <ol> if none) -->
+    <li><a href="#apx-a"><span class="n">A</span>REPLACE appendix title</a></li>
+    <!-- END CONTENT -->
+  </ol>
+</nav>
+
+<main>
+<header class="memo-head">
+  <p class="doc-kind">REPLACE: Internal Research Memorandum</p>
+  <h1>REPLACE: Report Title</h1>
+  <p class="subtitle">REPLACE: one-line subtitle stating the report's job</p>
+  <dl class="meta-grid">
+    <!-- 3-5 meta cells: date, scope, data source, sample, status -->
+    <div><dt>Date</dt><dd>REPLACE</dd></div>
+    <div><dt>Scope</dt><dd>REPLACE</dd></div>
+    <div><dt>Status</dt><dd>REPLACE</dd></div>
+  </dl>
+</header>
+
+<!-- BEGIN CONTENT: sections. Component patterns below; copy and fill. -->
+
+<section id="summary">
+  <h2><span class="sn">1</span>Executive summary</h2>
+  <p>REPLACE: two or three paragraphs, the whole story compressed.</p>
+
+  <!-- PATTERN: summary figures strip (headline metrics) -->
+  <div class="keyfigs">
+    <div class="keyfigs-title">Summary figures</div>
+    <div class="keyfigs-grid">
+      <div><div class="v">VALUE</div><div class="k">metric label</div></div>
+      <div><div class="v">VALUE</div><div class="k">metric label</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="section-2">
+  <h2><span class="sn">2</span>REPLACE section title</h2>
+  <p>REPLACE body prose.</p>
+
+  <!-- PATTERN: bordered data table -->
+  <div class="tablewrap"><table>
+    <caption><b>Table 2.1</b> REPLACE caption</caption>
+    <thead><tr><th>Col</th><th class="num">Number col</th></tr></thead>
+    <tbody>
+      <tr><td>row</td><td class="num">1,234</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">REPLACE table footnote (methodology, caveats).</p>
+
+  <!-- PATTERN: horizontal bar figure (widths = value/max*90%) -->
+  <figure>
+    <div class="fig-body">
+      <div class="hbar-row"><span class="lbl">Label</span><div class="hbar-track"><span class="hbar-fill" style="width:45%"></span></div><span class="val">VALUE</span></div>
+    </div>
+    <figcaption><b>Figure 2.1</b> REPLACE caption with n and source.</figcaption>
+  </figure>
+
+  <!-- PATTERN: 100% stacked share bar (use --bar-1..4; keep 2px gaps via border) -->
+  <figure>
+    <div class="fig-body">
+      <div class="stack" role="img" aria-label="REPLACE plain-language description">
+        <span style="width:70%; background:var(--bar-1)" title="A 70%"></span><span style="width:30%; background:var(--bar-2)" title="B 30%"></span>
+      </div>
+      <div class="stack-legend">
+        <span><span class="sw" style="background:var(--bar-1)"></span>A 70%</span>
+        <span><span class="sw" style="background:var(--bar-2)"></span>B 30%</span>
+      </div>
+    </div>
+    <figcaption><b>Figure 2.2</b> REPLACE caption.</figcaption>
+  </figure>
+
+  <!-- PATTERN: warning/callout -->
+  <div class="note"><span class="note-tag">REPLACE tag</span>REPLACE callout text.</div>
+
+  <!-- PATTERN: numbered finding card -->
+  <div class="finding"><div class="finding-head"><span class="fid">F1</span><span class="ft">REPLACE finding title</span></div>
+  <div class="finding-body"><p>REPLACE evidence-backed paragraph.</p></div></div>
+</section>
+
+<section id="apx-a">
+  <h2><span class="sn">A</span>REPLACE appendix title</h2>
+  <p class="backtop"><a href="#summary">Back to top</a></p>
+</section>
+
+<!-- END CONTENT -->
+</main>
+</div>
+
+<script>
+  const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  const byId = {};
+  links.forEach(a => { byId[a.getAttribute('href').slice(1)] = a; });
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('active'));
+        const a = byId[e.target.id];
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => obs.observe(s));
+</script>

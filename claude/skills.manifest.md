@@ -1,7 +1,19 @@
 # Skills manifest
 
-Skills I use are third-party packs, so they're **not vendored** here — install them
-from source instead. Listed for reproducibility on a new machine.
+## Vendored here (self-authored)
+
+These are custom skills I wrote, so they live in this repo under `claude/skills/` and
+`install.sh` symlinks each into `~/.claude/skills/`.
+
+| Skill | What it does |
+|---|---|
+| `grepreview` | Reliable Greptile review loop on a PR until 5/5 with zero unresolved comments (hardened `greploop`). |
+| `research-report` | Build a research-memo report artifact (sidebar TOC, bordered tables, finding cards, light/dark). |
+
+## Third-party (not vendored)
+
+The rest are third-party packs, so they're **not vendored** here; install them from
+source instead. Listed for reproducibility on a new machine.
 
 | Skill(s) | Source |
 |---|---|
