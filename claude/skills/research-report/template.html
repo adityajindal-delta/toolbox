@@ -111,6 +111,11 @@
   .finding-body { padding: 0.85rem 0.95rem 0.2rem; }
   .finding-body p { font-size: 0.95rem; }
   a { color: var(--accent-ink); }
+  /* Citation links: inline references like R3 / D1 / O1 / §6 that jump to a definition. */
+  a.ref { font-family: var(--mono); font-size: 0.92em; font-weight: 600; text-decoration: none; border-bottom: 1px dotted var(--accent-ink); padding: 0 0.06em; }
+  a.ref:hover { background: var(--accent-soft); }
+  /* Anchor targets get a scroll offset so they aren't hidden under a sticky heading. */
+  section[id], .finding[id], tr[id], a.ref { scroll-margin-top: 1rem; }
   .backtop { font-family: var(--sans); font-size: 0.75rem; }
   @media (max-width: 880px) {
     .frame { grid-template-columns: 1fr; }
@@ -207,9 +212,18 @@
   <!-- PATTERN: warning/callout -->
   <div class="note"><span class="note-tag">REPLACE tag</span>REPLACE callout text.</div>
 
-  <!-- PATTERN: numbered finding card -->
-  <div class="finding"><div class="finding-head"><span class="fid">F1</span><span class="ft">REPLACE finding title</span></div>
+  <!-- PATTERN: numbered finding card. Give it an id (lowercased fid, e.g. id="d1")
+       so other sections can cite it with a <a class="ref"> link. -->
+  <div class="finding" id="f1"><div class="finding-head"><span class="fid">F1</span><span class="ft">REPLACE finding title</span></div>
   <div class="finding-body"><p>REPLACE evidence-backed paragraph.</p></div></div>
+
+  <!-- PATTERN: citation link. Turn every inline reference to a numbered finding,
+       recommendation, or section into a jump link. The target must carry a matching id:
+         finding cards -> <div class="finding" id="d1">
+         action/recommendation rows -> <tr id="r1"><td ...>R1</td> ...
+         sections -> already have id on <section>; cite with the section's own id
+       Then write the mention as: this is caused by <a class="ref" href="#d1">D1</a>,
+       fixed by <a class="ref" href="#r3">R3</a>, see <a class="ref" href="#recs">§8</a>. -->
 </section>
 
 <section id="apx-a">
