@@ -6,6 +6,21 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "opus[1m]",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Before committing: if code was written or edited in this change and /clean-comments has not yet been run on the changed files, run it now — strip AI-slop comments and keep only repo-style load-bearing comments.\"},\"systemMessage\":\"Reminder: run /clean-comments on changed files before commit.\"}'",
+            "if": "Bash(git commit*)"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "sh /Users/adityajindal/.claude/statusline-command.sh"
@@ -14,7 +29,13 @@
     "frontend-design@claude-plugins-official": true,
     "chrome-devtools-mcp@chrome-devtools-plugins": true,
     "figma@claude-plugins-official": false,
-    "compound-engineering@compound-engineering-plugin": true
+    "compound-engineering@compound-engineering-plugin": true,
+    "notion@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "deploy-change@anuj-skills": true,
+    "warp@claude-code-warp": true,
+    "standup@anuj-skills": true,
+    "swift-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "chrome-devtools-plugins": {
@@ -28,6 +49,18 @@
         "source": "github",
         "repo": "EveryInc/compound-engineering-plugin"
       }
+    },
+    "anuj-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anuj-delta/skills"
+      }
+    },
+    "claude-code-warp": {
+      "source": {
+        "source": "github",
+        "repo": "warpdotdev/claude-code-warp"
+      }
     }
   },
   "effortLevel": "high",
@@ -36,7 +69,7 @@
     "mode": "hold"
   },
   "skipWorkflowUsageWarning": true,
-  "theme": "dark",
+  "theme": "auto",
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true
 }
